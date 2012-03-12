@@ -1,5 +1,5 @@
 '---------------- Wait for openapp running  --------------
-'WScript.Sleep 2*60*1000  'sleep 15 min
+WScript.Sleep 2*60*1000  'sleep 15 min
 
 
 set service = GetObject ("winmgmts:")
@@ -57,6 +57,7 @@ Dim programList(13)
 		objShell.Exec "shutdown -L"
 	End If
 
+'-----------------------------------------------------------------------
 
 
 Sub mainCheck
