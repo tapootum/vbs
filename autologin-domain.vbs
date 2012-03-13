@@ -33,9 +33,9 @@ Dim valDefaultPassword
 RegLocAutoLogon = "HKLM\Software\Microsoft\" & _
 "Windows NT\CurrentVersion\Winlogon\"
 keyDefaultDomainName = "DefaultDomainName"
-valDefaultDomainName = "OSDEV"
+valDefaultDomainName = "xxxxxxx"
 keyDefaultUserName = "DefaultUserName"
-valDefaultUserName = "openapp"
+valDefaultUserName = "xxxxxx"
 keyDisableCAD = "DisableCAD"
 valDisableCAD = 1
 keyAutoAdminLogon = "AutoAdminLogon"
@@ -43,7 +43,7 @@ valAutoAdminLogon = "1"
 keyForceAutoLogon = "ForceAutoLogon"
 valForceAutoLogon = "1"
 keyDefaultPassword = "DefaultPassword"
-valDefaultPassword = "P@ssw0rd"
+valDefaultPassword = "xxxxxx"
 
 Set objShell = CreateObject("WScript.Shell")
 
