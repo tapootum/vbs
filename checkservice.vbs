@@ -226,9 +226,9 @@ Sub  Sendlog(Path)
 	objMessage.Configuration.Fields.Item _
 	("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = True
 	objMessage.Configuration.Fields.Item _
-	("http://schemas.microsoft.com/cdo/configuration/sendusername") = "tapootumchannel"
+	("http://schemas.microsoft.com/cdo/configuration/sendusername") = "gggggggggg"
 	objMessage.Configuration.Fields.Item _
-	("http://schemas.microsoft.com/cdo/configuration/sendpassword") = "tapootum15124"
+	("http://schemas.microsoft.com/cdo/configuration/sendpassword") = "xxxx"
 	objMessage.Configuration.Fields.Update
 
 	'==End remote SMTP server configuration section==
