@@ -2,27 +2,63 @@
 '--Check Java Version---
 '-----------------------
 
-Dim RegJavaVersion
-Dim Jversion
-
-RegJavaVersion = "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion"
+Dim RegPath, RegPath64
+Dim JavaVersion
+Dim OsBits
+RegPath = "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion"
+RegPath64 = "HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\CurrentVersion"
 Set objShell = CreateObject("WScript.Shell")
+Set service = GetObject("winmgmts:")
+
+'== Main ==
+
+install
+
+'==========
 
 Sub install
 On Error Resume Next
-Jversion = objShell.RegRead (RegJavaVersion)
-	if err.number <> 0 then
-        objShell.Run ("jre.exe /s /v /qn")
-	WScript.Sleep 30*1000
+
+'=== Check System ===
+OsBits = OsBit()
+If OsBits = "x86" Then
+	JavaVersion = objShell.RegRead (RegPath)
+Else 
+	JavaVersion = objShell.RegRead (RegPath64)
+End If 
+
+'====== Check Java Version and install =======
+	If err.number <> 0 Then
+	
+		'==== install JRE 1.6 if JRE 1.6 does not exist ====
+        Return = objShell.Run ("jre-6u31-windows-i586.exe /s /v /qn" & WScript.ScriptFullName,1,True)
     Else
-    	If Jversion <> 1.6 Then
-    		objShell.Run ("jre.exe /s /v /qn")
-    		WScript.Sleep 30*1000
-    		objShell.RegWrite "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion", Jversion,  "REG_SZ"
+    	If JavaVersion = 1.6 Then
+    	'=== Do not install JRE 1.6 ===
     	Else 
-    		WScript.Echo "JRE 1.6 is alrady exis"
+    	
+    	'=== Install JRE 1.6 if jre not equal 1.6  (x < 1.6 < x) =====
+    		Return = objShell.Run ("jre-6u31-windows-i586.exe /s /v /qn" & WScript.ScriptFullName ,1,True)
+    		
+    			'=== Registry write to old JRE version ===
+    			If OsBits = "x86" Then
+    				objShell.RegWrite "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion", JavaVersion,  "REG_SZ"
+    			Else 
+    				objShell.RegWrite "HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\CurrentVersion", JavaVersion,  "REG_SZ"
+    			End If
     	End If
     End If
-
 End Sub	
-install()
+
+Function OsBit()
+	const HKEY_LOCAL_MACHINE = &H80000002
+	strComputer = "."
+
+	Set oReg=GetObject("winmgmts:{impersonationLevel=impersonate}!\\" &_
+	strComputer & "\root\default:StdRegProv")
+
+		strKeyPath = "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+		strValueName = "PROCESSOR_ARCHITECTURE"
+		oReg.GetStringValue HKEY_LOCAL_MACHINE,strKeyPath,strValueName,strValue
+		OsBit = strValue
+End Function
