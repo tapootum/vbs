@@ -11,9 +11,6 @@ Install
 Sub Install
 	On Error Resume Next
 	
-	'=== Check System ===
-	osArchs = GetOsArch()
-	
 	Dim regPath, regPath64
 	Dim javaVersion
 	Dim osArchs
@@ -21,7 +18,9 @@ Sub Install
 	regPath64 = "HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\CurrentVersion"
 	Set objShell = CreateObject("WScript.Shell")
 	Set service = GetObject("winmgmts:")
-
+	
+	'=== Check System ===
+	osArchs = GetOsArch()
 	If osArchs = "x86" Then
 		javaVersion = objShell.RegRead (regPath)
 	Else 
