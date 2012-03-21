@@ -9,28 +9,28 @@ Install
 '==========
 
 Sub Install
-	On Error Resume Next
-	
-	Dim regPath, regPath64
-	Dim javaVersion
-	Dim osArchs
-	regPath = "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion"
-	regPath64 = "HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\CurrentVersion"
-	Set objShell = CreateObject("WScript.Shell")
-	Set service = GetObject("winmgmts:")
-	
-	'=== Check System ===
-	osArchs = GetOsArch()
+    On Error Resume Next
+    
+    Dim regPath, regPath64
+    Dim javaVersion
+    Dim osArchs
+    regPath = "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion"
+    regPath64 = "HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\CurrentVersion"
+    Set objShell = CreateObject("WScript.Shell")
+    Set service = GetObject("winmgmts:")
+    
+    '=== Check System ===
+    osArchs = GetOsArch()
     If osArchs = "x86" Then
         javaVersion = objShell.RegRead (regPath)
     Else 
         javaVersion = objShell.RegRead (regPath64)
     End If 
-
-	'====== Check Java Version and install =======
+    
+    '====== Check Java Version and install =======
     If err.number <> 0 Then
-	
-		'==== install JRE 1.6 if JRE 1.6 does not exist ====
+    
+    	'==== install JRE 1.6 if JRE 1.6 does not exist ====
         Return = objShell.Run ("jre-6u31-windows-i586.exe /s /v /qn" & WScript.ScriptFullName, 1, True)
     Else
         If javaVersion <> 1.6 Then
