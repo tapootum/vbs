@@ -48,6 +48,7 @@ Sub Install
     End If
 End Sub	
 
+
 Function GetOsArch()
 	const HKEY_LOCAL_MACHINE = &H80000002
 	strComputer = "."
