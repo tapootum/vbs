@@ -40,9 +40,9 @@ Sub Install
 			
             '=== Registry write to old JRE version ===
             If osArchs = "x86" Then
-                objShell.RegWrite ("HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion", javaVersion, "REG_SZ")
+                objShell.RegWrite regPath, javaVersion, "REG_SZ"
             Else 
-                objShell.RegWrite ("HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\CurrentVersion", javaVersion, "REG_SZ")
+                objShell.RegWrite regPath64, javaVersion, "REG_SZ"
             End If
         End If
     End If
@@ -57,7 +57,7 @@ Function GetOsArch()
     
     strKeyPath = "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
     strValueName = "PROCESSOR_ARCHITECTURE"
-    oReg.GetStringValue (HKEY_LOCAL_MACHINE, strKeyPath, strValueName, strValue)
+    oReg.GetStringValue HKEY_LOCAL_MACHINE, strKeyPath, strValueName, strValue
     	
     GetOsArch = strValue
 End Function
