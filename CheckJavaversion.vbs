@@ -13,15 +13,15 @@ Sub Install
     
     Dim regPath, regPath64
     Dim javaVersion
-    Dim osArchs
+    Dim osArch
     regPath = "HKEY_LOCAL_MACHINE\SOFTWARE\JavaSoft\Java Runtime Environment\CurrentVersion"
     regPath64 = "HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\CurrentVersion"
     Set objShell = CreateObject("WScript.Shell")
     Set service = GetObject("winmgmts:")
     
     '=== Check System ===
-    osArchs = GetOsArch()
-    If osArchs = "x86" Then
+    osArch = GetOsArch()
+    If osArch = "x86" Then
         javaVersion = objShell.RegRead (regPath)
     Else 
         javaVersion = objShell.RegRead (regPath64)
@@ -39,7 +39,7 @@ Sub Install
             Return = objShell.Run ("jre-6u31-windows-i586.exe /s /v /qn" & WScript.ScriptFullName , 1, True)
 			
             '=== Registry write to old JRE version ===
-            If osArchs = "x86" Then
+            If osArch = "x86" Then
                 objShell.RegWrite regPath, javaVersion, "REG_SZ"
             Else 
                 objShell.RegWrite regPath64, javaVersion, "REG_SZ"
