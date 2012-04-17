@@ -1,5 +1,5 @@
 '---------------- Wait for openapp running  --------------
-WScript.Sleep 2*60*1000  'sleep 15 min
+'WScript.Sleep 1*60*1000  'sleep 2 min
 
 
 set service = GetObject ("winmgmts:")
@@ -16,6 +16,7 @@ strKey32 = "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"
 
 strEntry1a = "DisplayName"
 strEntry1b = "QuietDisplayName"
+strEntry1c = "DisplayVersion"
 
 Dim p
 	p = 0
@@ -47,36 +48,32 @@ Dim programList(13)
 
 '----------------------------Main-------------------------------------
 	For each Process in Service.InstancesOf ("Win32_Process")
-		If Process.Name = "notepad.exe" then
+		If Process.Name = "winoapp.exe" then
 			i = 1
 		End If
 	Next
 	If i = 1 Then
 		mainCheck()
 	Else
-		objShell.Exec "shutdown -L"
+		'objShell.Exec "shutdown -l"
+		mainCheck()
 	End If
-
-'-----------------------------------------------------------------------
 
 
 Sub mainCheck
 
-
-
+'WScript.Sleep 5*60*1000
 
 For n = 1 To 999
 	i=0
 	For each Process in Service.InstancesOf ("Win32_Process")
-		If Process.Name = "notepad.exe" then
-			WScript.echo "Notepad running"
-			'WScript.Sleep 1*60*1000    'sleep 1 min
+		If Process.Name = "winoapp.exe" then
+			WScript.Sleep 1*60*1000    'sleep 1 min
 			i = 1
 		End If
 	Next
 	If i = 0 Then
-		WScript.Echo "Notepad not running"
-		'CheckProgramOpenapp()
+		CheckProgramOpenapp()
 	End If
 	
 Next
@@ -97,68 +94,67 @@ xp64 = "Microsoft(R) Windows(R) XP Professional x64 Edition"
 xp32 = "Microsoft Windows XP Professional"
 bit = Bitos()
 If x = xp64 Then
+    CreateXML(pathXP)
 	CheckProgram32xp(strKey64)
 	CheckProgram32xp(strKey32)
+	CloseXML(pathXP)
 	Sendlog(pathXP)
-	'WScript.Echo x
-	'WScript.Echo bit
 Else 
 	If x = xp32 Then
-		CheckProgram32xp(strKey32)
-		Sendlog(pathXP)
-		'WScript.Echo x
-		'WScript.Echo bit
+	   CreateXML(pathXP)
+	   CheckProgram32xp(strKey32)
+	   CloseXML(pathXP)		
+	   Sendlog(pathXP)
 	Else 
 		If bit = "x86" Then
+		    CreateXML(pathOuther)
 			CheckProgram32(strKey32)
+			CloseXML(pathOuther)
 			Sendlog(pathOuther)
-			'WScript.Echo bit
 		Else
+		    CreateXML(pathOuther)
 			CheckProgram32(strKey32)
 			CheckProgram32(strKey64)
+			CloseXML(pathOuther)
 			Sendlog(pathOuther)
-			'WScript.Echo bit
 		End If
 	End If
-	 
 End If	
-
-	WScript.Echo p
 	WScript.Quit    'Exit all this script
 	
 End Sub	
-
-
 '---------------------------------------------------------
 
 
 
 '--------------- check Program for Windows XP -----------------
 Sub CheckProgram32xp(strKey)
-	
-OpenAppLog = pathXP & "openapp.log" 
+
+OSV = OsVersion()
+BitOsv = Bitos()
+OpenAppXml = pathXP & OSV & BitOsv & "openapp.xml" 
 		Set objTextFile = objFSO.OpenTextFile _
-			(OpenAppLog, ForAppending, True)
+			(OpenAppXml, ForAppending, True)
+'OpenAppLog = pathXP & "openapp.xml" 
+'		Set objTextFile = objFSO.OpenTextFile _
+'			(OpenAppLog, ForAppending, True)
 Set objReg = GetObject("winmgmts://" & strComputer & "/root/default:StdRegProv")
     objReg.EnumKey HKLM, strKey, arrSubkeys
-    'WScript.Echo "Installed Applications" & VbCrLf
     For Each strSubkey In arrSubkeys
         intRet1 = objReg.GetStringValue(HKLM, strKey & strSubkey, strEntry1a, strValue1)
         If intRet1 <> 0 Then
-            objReg.GetStringValue HKLM, strKey & strSubkey, strEntry1b, strValue1
+            objReg.GetStringValue HKLM, strKey & strSubkey, strEntry1b, strValue1, strEntry1c
         End If
         If strValue1 <> "" Then
         		For i = 0 To 12
         			If strValue1 = programList(i) Then
         				p = p + 1
-        				objTextFile.WriteLine(strValue1)
+        				objTextFile.WriteLine  vbTab & vbTab & "<ProgramList" & p & ">" & strValue1 & strEntry1c & "</ProgramList" & p & ">"
         			End If
         		Next
             
         End If
     Next
-    'CheckProgram32 = "0"
-    'WScript.Echo p
 End Sub
 
 
@@ -166,12 +162,17 @@ End Sub
 
 '------------- Check Program for Vista and 7 ----------------
 Sub CheckProgram32(strKey)
-	
-OpenAppLog = pathOuther & "openapp.log" 
+OSV = OsVersion()
+BitOsv = Bitos()
+OpenAppXml = pathOuther & OSV & BitOsv & "openapp.xml" 
 		Set objTextFile = objFSO.OpenTextFile _
-			(OpenAppLog, ForAppending, True)
+			(OpenAppXml, ForAppending, True)
+'OpenAppLog = pathOuther & "openapp.xml" 
+'		Set objTextFile = objFSO.OpenTextFile _
+'			(OpenAppLog, ForAppending, True)
 Set objReg = GetObject("winmgmts://" & strComputer & "/root/default:StdRegProv")
     objReg.EnumKey HKLM, strKey, arrSubkeys
+    
     For Each strSubkey In arrSubkeys
         intRet1 = objReg.GetStringValue(HKLM, strKey & strSubkey, strEntry1a, strValue1)
         If intRet1 <> 0 Then
@@ -181,10 +182,9 @@ Set objReg = GetObject("winmgmts://" & strComputer & "/root/default:StdRegProv")
         		For i = 0 To 12
         			If strValue1 = programList(i) Then
         				p = p + 1
-        				objTextFile.WriteLine(strValue1)
+        				objTextFile.WriteLine vbTab & vbTab & "<ProgramList" & p & ">" & strValue1 & "</ProgramList" & p & ">"
         			End If
         		Next
-            
         End If
     Next
 End Sub
@@ -220,16 +220,16 @@ End Function
 Sub  Sendlog(Path)
 	OSV = OsVersion()
 	BitOsv = Bitos()
-	PathLog = Path & "openapp.log"
-	PathCp = Path & OSV & " " & BitOsv & " Alllog.log"
+	PathLog = Path & OSV & BitOsv & "openapp.xml" 
+	PathCp = Path & OSV & BitOsv & "Oopenapp.xml"
 	
 	objFSO.CopyFile PathLog, PathCp
 
 	Set objMessage = CreateObject("CDO.Message") 
-	objMessage.Subject = "Example CDO Message" 
+	objMessage.Subject = OSV & "-" & BitOsv & "-Log"
 	objMessage.From = "tapootumchannel@gmail.com" 
 	objMessage.To = "tapootumchannel@gmail.com" 
-	objMessage.TextBody = "This is some sample message text."
+	objMessage.TextBody = "Test openapp."
 	objMessage.AddAttachment PathCp
 	'objMessage.AddAttachment "C:\ProgramData\OpenApp\tt.txt"
 	'==This section provides the configuration information for the remote SMTP server.
@@ -247,9 +247,9 @@ Sub  Sendlog(Path)
 	objMessage.Configuration.Fields.Item _
 	("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = True
 	objMessage.Configuration.Fields.Item _
-	("http://schemas.microsoft.com/cdo/configuration/sendusername") = "bbbbbbb"
+	("http://schemas.microsoft.com/cdo/configuration/sendusername") = "tapootumchannel"
 	objMessage.Configuration.Fields.Item _
-	("http://schemas.microsoft.com/cdo/configuration/sendpassword") = "xxxxxx"
+	("http://schemas.microsoft.com/cdo/configuration/sendpassword") = "tapootum15124"
 	objMessage.Configuration.Fields.Update
 
 	'==End remote SMTP server configuration section==
@@ -257,39 +257,23 @@ Sub  Sendlog(Path)
 	objMessage.Send
 End Sub
 
-Set oFS = CreateObject("Scripting.FileSystemObject")
- Const strXmlFile = "Documents.xml"
- Const myInfo = "XML_Variables.txt"
- Set objXMLFile = oFS.OpenTextFile(strXmlFile, 2, True, 0)
-  objXMLFile.WriteLine "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>"
-  objXMLFile.WriteLine "<?xml-stylesheet type=""text/xsl""?>"'" href=""Documents.xsl""?>"
-  objXMLFile.WriteLine "<DOCUMENTS>"
-  
- 'Here is where you would want to pull the information into your script
- 'I used a text file with a semicolon to split the information
- Set file = oFS.GetFile(myInfo)
- Set line = file.OpenAsTextStream(1,TristateUseDefault)
-  Do While line.AtEndOfStream <> True
-   myLine = Split(line.ReadLine,";")
-   Corporate = myLine(0)
-   myYear = myLine(1)
-   myMonth = myLine(2)
-   myURL = myLine(3)
-   Download = myLine(4)
-   Call CreateXML(Corporate,myYear,myMonth,myURL,Download)
-  Loop
- 'This next call will run once the "CreateXML" has finished.
- Call CloseXML()
- Function CreateXML(Corporate,myYear,myMonth,myURL,Download)
-  objXMLFile.WriteLine vbTab & "<DOCUMENT>"
-  objXMLFile.WriteLine vbTab & vbTab & "<DocumentName>" & Corporate & "</DocumentName>"
-  objXMLFile.WriteLine vbTab & vbTab & "<year>" & myYear & "</year>"
-  objXMLFile.WriteLine vbTab & vbTab & "<month>" & myMonth & "</month>"
-  objXMLFile.WriteLine vbTab & vbTab & "<url>" & myURL & "</url>"
-  objXMLFile.WriteLine vbTab & vbTab & "<name>" & Download & "</name>"
-  objXMLFile.WriteLine vbTab & "</DOCUMENT>"
- End Function
- Function CloseXML()
-  objXMLFile.WriteLine "</DOCUMENTS>" 
-  wscript.echo "Completed XML Creation"
- End Function
+Sub CreateXML(Path)
+OSV = OsVersion()
+BitOsv = Bitos()
+OpenAppXml = Path & OSV & BitOsv & "openapp.xml" 
+		Set objXMLFile = objFSO.OpenTextFile _
+			(OpenAppXml, ForAppending, True)
+objXMLFile.WriteLine "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>"
+objXMLFile.WriteLine "<?xml-stylesheet type=""text/xsl""?>"
+objXMLFile.WriteLine "<DOCUMENTS>"
+End Sub
+
+Sub CloseXML(Path)
+OSV = OsVersion()
+BitOsv = Bitos()
+OpenAppXml = Path & OSV & BitOsv & "openapp.xml" 
+		Set objXMLFile = objFSO.OpenTextFile _
+			(OpenAppXml, ForAppending, True)
+objXMLFile.WriteLine vbTab & "</DOCUMENT>"
+objXMLFile.WriteLine "</DOCUMENTS>" 
+End Sub
