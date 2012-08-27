@@ -1,5 +1,5 @@
 '---------------- Wait for openapp running  --------------
-'WScript.Sleep 1*60*1000  'sleep 2 min
+'WScript.Sleep 1*60*1000  'sleep 1 min
 
 
 Set service = GetObject ("winmgmts:")
@@ -30,10 +30,10 @@ Set objFSO = CreateObject("Scripting.FileSystemObject")
 
 
 '------- List Program ---------------------
-Dim programList(13)
+Dim programList(14)
 programList(0) = "InfraRecorder"
 programList(1) = "Inkscape 0.48.2"
-programList(2) = "Mozilla Thunderbird (8.0)"
+programList(2) = "Mozilla Thunderbird 11.0.1 (x86 en-US)"
 programList(3) = "GIMP 2.6.11"
 programList(4) = "PDFCreator"
 programList(5) = "7-Zip 9.20"
@@ -44,7 +44,7 @@ programList(9) = "OpenApp"
 programList(10) = "7-Zip 9.20 (x64 edition)"
 programList(11) = "InfraRecorder 0.52 (x64 edition)"
 programList(12) = "Microsoft Visual C++ 2008 Redistributable - x64 9.0.30729.17"
-
+programList(13) = "OpenFonts"
 
 
 '----------------------------Main-------------------------------------
@@ -56,19 +56,19 @@ Next
 If i = 1 Then
      MainCheck()
 Else
-     'objShell.Exec "shutdown -l"
-     MainCheck()
+     objShell.Exec "shutdown -l"
 End If
+objShell.Exec "shutdown -l"    'if program not running , computer is log off'
 
-'-------- Main Sub ------
+'-------- Sub Main ------
 Sub MainCheck
-     'WScript.Sleep 5*60*1000
+     WScript.Sleep 1*60*1000
      For n = 1 To 999
           i=0
           '---- check openapp process ----
           For Each Process In Service.InstancesOf ("Win32_Process")
                If Process.Name = "winoapp.exe" Then
-                    'WScript.Sleep 1*60*1000    'sleep 1 min
+                    WScript.Sleep 1*60*1000    'sleep 1 min
                     i = 1
                End If
           Next
@@ -78,104 +78,117 @@ Sub MainCheck
           End If
      Next
 End Sub
-'----------------------------------------------------------------------
-
-
-
+'---------------------------
 
 '------ Check windows version --------
 
 Sub CheckProgramOpenapp()
      Dim objTextFile
-     osVersion = OsVersion()
+     Dim oOsVersion
+     oOsVersion = OsVersion()
      xp64 = "Microsoft(R) Windows(R) XP Professional x64 Edition"
      xp32 = "Microsoft Windows XP Professional"
-     osArch = OsArch()
-     If osVersion = xp64 Then
+     oOsArch = OsArch()
+     If oOsVersion = xp64 Then
           CreateXML(pathXP)
-          CheckProgram32xp(strKey64)
-          CheckProgram32xp(strKey32)
+          CheckProgramXP(strKey64)
+          CheckProgramXP(strKey32)
           CloseXML(pathXP)
           Sendlog(pathXP)
      Else 
-          If osVersion = xp32 Then
+          If oOsVersion = xp32 Then
                CreateXML(pathXP)
-               CheckProgram32xp(strKey32)
+               CheckProgramXP(strKey32)
                CloseXML(pathXP)   
                Sendlog(pathXP)
           Else 
-               If osArch = "x86" Then
+               If oOsArch = "x86" Then
                     CreateXML(pathOuther)
-                    CheckProgram32(strKey32)
+                    CheckProgram(strKey32)
                     CloseXML(pathOuther)
                     Sendlog(pathOuther)
                Else
                     CreateXML(pathOuther)
-                    CheckProgram32(strKey32)
-                    CheckProgram32(strKey64)
+                    CheckProgram(strKey32)
+                    CheckProgram(strKey64)
                     CloseXML(pathOuther)
                     Sendlog(pathOuther)
                End If
           End If
      End If
+
+     objShell.Exec "shutdown -s"  'Script complete is shut down VM'
      WScript.Quit    'Exit all this script
 End Sub
-'---------------------------------------------------------
+'----------------------------------------
 
 '--------------- Check Program for Windows XP -----------------
-Sub CheckProgram32xp(strKey)
-     osVersion = OsVersion()
-     osArch = OsArch()
-     OpenAppXml = pathXP & osVersion & osArch & "openapp.xml" 
+Sub CheckProgramXP(strKey)
+     oOsVersion = OsVersion()
+     oOsArch = OsArch()
+     OpenAppXml = pathXP & oOsVersion & oOsArch & "openapp.xml" 
      Set objTextFile = objFSO.OpenTextFile _
      (OpenAppXml, ForAppending, True)
      Set objReg = GetObject("winmgmts://" & strComputer & "/root/default:StdRegProv")
      objReg.EnumKey HKLM, strKey, arrSubkeys
      For Each strSubkey In arrSubkeys
           intRet1 = objReg.GetStringValue(HKLM, strKey & strSubkey, strEntry1a, strValue1)
-          WScript.Echo strValue1
-          If intRet1 <> 0 Then
-          End If
-          If strValue1 <> "" Then
-               For i = 0 To 12
-                    If strValue1 = programList(i) Then
-                         p = p + 1
-                         objTextFile.WriteLine  vbTab & vbTab & "<ProgramList" & p & ">" & strValue1 & strValue2 &"</ProgramList" & p & ">"
-                    End If
-               Next
-               
-          End If
-     Next
-End Sub
-
-
-
-
-'------------- Check Program for Vista and 7 ----------------
-Sub CheckProgram32(strKey)
-     osVersion = OsVersion()
-     osArch = OsArch()
-     OpenAppXml = pathOuther & osVersion & osArch & "openapp.xml" 
-     Set objTextFile = objFSO.OpenTextFile _
-     (OpenAppXml, ForAppending, True)
-     Set objReg = GetObject("winmgmts://" & strComputer & "/root/default:StdRegProv")
-     objReg.EnumKey HKLM, strKey, arrSubkeys
-     For Each strSubkey In arrSubkeys
-          intRet1 = objReg.GetStringValue(HKLM, strKey & strSubkey, strEntry1a, strValue1)
-          objReg.GetStringValue HKLM, strKey & strSubkey, _
-          strEntry1d, strValue2
-          If strValue2 <> "" Then
-               'WScript.Echo "DisplayVersion: " & strValue2
-               If intRet1 <> 0 Then
-               End If
+          objReg.GetStringValue HKLM, strKey & strSubkey, strEntry1d, strValue2
+               'If intRet1 <> 0 Then
+               'End If
                If strValue1 <> "" Then
-                    For i = 0 To 12
+               'WScript.Echo strValue1
+                    For i = 0 To 13
                          If strValue1 = programList(i) Then
+                              If strValue1 = "InfraRecorder" Then
+                                   p = p + 1
+                                   vInfraRecorder = InfraRecorder()
+                                   objTextFile.WriteLine vbTab & vbTab & "<ProgramList" & p & ">" & _
+                                   strValue1 & " V."& vInfraRecorder & "</ProgramList" & p & ">"
+                              End If
+                              If strValue2 <> "" Then
                               p = p + 1
-                              objTextFile.WriteLine vbTab & vbTab & "<ProgramList" & p & ">" & strValue1 & " V."& strValue2 & "</ProgramList" & p & ">"
+                              objTextFile.WriteLine  vbTab & vbTab & "<ProgramList" & p & ">" & _
+                              strValue1 & " V." & strValue2 &"</ProgramList" & p & ">"
+                              End If
                          End If
                     Next
                End If
+     Next
+End Sub
+
+'------------- Check Program for Vista and 7 ----------------
+Sub CheckProgram(strKey)
+     oOsVersion = OsVersion()
+     oOsArch = OsArch()
+     OpenAppXml = pathOuther & oOsVersion & oOsArch & "openapp.xml" 
+     Set objTextFile = objFSO.OpenTextFile _
+     (OpenAppXml, ForAppending, True)
+     Set objReg = GetObject("winmgmts://" & strComputer & "/root/default:StdRegProv")
+     objReg.EnumKey HKLM, strKey, arrSubkeys
+     For Each strSubkey In arrSubkeys
+          intRet1 = objReg.GetStringValue(HKLM, strKey & strSubkey, strEntry1a, strValue1)
+          objReg.GetStringValue HKLM, strKey & strSubkey, strEntry1d, strValue2
+          'If intRet1 <> 0 Then
+          'End If
+          If strValue1 <> "" Then
+               For i = 0 To 13
+                    If strValue1 = programList(i) Then
+                         If strValue1 = "InfraRecorder" Then
+                              p = p + 1
+                              vInfraRecorder = InfraRecorder()
+                              'WScript.Echo strValue1 & vInfraRecorder
+                              objTextFile.WriteLine vbTab & vbTab & "<ProgramList" & p & ">" & _
+                              strValue1 & " V."& vInfraRecorder & "</ProgramList" & p & ">"
+                         End If
+                         If strValue2 <> "" Then
+                              p = p + 1
+                              'WScript.Echo strValue1 & strValue2
+                              objTextFile.WriteLine vbTab & vbTab & "<ProgramList" & p & ">" & _
+                              strValue1 & " V."& strValue2 & "</ProgramList" & p & ">"
+                         End If
+                    End If
+               Next
           End If
      Next
 End Sub
@@ -185,10 +198,10 @@ End Sub
 Function OsArch()
      Const HKEY_LOCAL_MACHINE = &H80000002
      strComputer = "."
-
+     
      Set oReg=GetObject("winmgmts:{impersonationLevel=impersonate}!\\" &_
      strComputer & "\root\default:StdRegProv")
-
+     
      strKeyPath = "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
      strValueName = "PROCESSOR_ARCHITECTURE"
      oReg.GetStringValue HKEY_LOCAL_MACHINE,strKeyPath,strValueName,strValue
@@ -206,28 +219,27 @@ Function OsVersion()
      OsVersion = v
 End Function
 
-
 '----------  Send Log to FTP --------------
 Sub  Sendlog(Path)
-     osVersion = OsVersion()
-     osArch = OsArch()
+     oOsVersion = OsVersion()
+     oOsArch = OsArch()
      Dim osVersionV
-     WScript.Echo osVersion
-     If osVersion = "Microsoft Windows 7 Professional " Then
+     'WScript.Echo oOsVersion
+     If oOsVersion = "Microsoft Windows 7 Professional " Then
           osVersionV = "MicrosoftWindows-7-Professional"
      Else
-          If osVersion = "Microsoft Windows XP Professional" Then
+          If oOsVersion = "Microsoft Windows XP Professional" Then
                osVersionV = "MicrosoftWindows-XP-Professional"
           Else
-               If osVersion = "Microsoft(R) Windows(R) XP Professional x64 Edition" Then
+               If oOsVersion = "Microsoft(R) Windows(R) XP Professional x64 Edition" Then
                     osVersionV = "Microsoft(R)Windows(R)-XP-Professionalx64Edition"
                Else
                     osVersionV = "MicrosoftWindows-Vista-Business"
                End If
           End If        
      End If
-     pathLog = Path & osVersion & osArch & "openapp.xml" 
-     pathCp = "C:\xml\" & osVersionV & osArch & "-openapp.xml" 
+     pathLog = Path & oOsVersion & oOsArch & "openapp.xml" 
+     pathCp = "C:\xml\" & osVersionV & oOsArch & "-openapp.xml" 
      'WScript.echo PathLog
      'WScript.echo PathCp
      
@@ -237,17 +249,17 @@ Sub  Sendlog(Path)
      If objFSO.FolderExists(strFolder) = False Then
           objFSO.CreateFolder strFolder
           'WScript.echo "Folder Created"
-     Else
+     'Else
           'WScript.echo "Folder already exists"
      End If
      objFSO.CopyFile pathLog, pathCp
-     FTPUpload("192.168.23.99","xmlftp","1234567890",PathCp,"/var/www/xml")
+     ftp = FTPUpload("192.168.23.99","xmlftp","1234567890",PathCp,"/var/www/xml")
 End Sub
 
 Sub CreateXML(Path)
-     osVersion = OsVersion()
-     osArch = OsArch()
-     oOpenAppXml = Path & osVersion & osArch & "openapp.xml" 
+     oOsVersion = OsVersion()
+     oOsArch = OsArch()
+     oOpenAppXml = Path & oOsVersion & oOsArch & "openapp.xml" 
      Set objXMLFile = objFSO.OpenTextFile _
      (oOpenAppXml, ForAppending, True)
      objXMLFile.WriteLine "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>"
@@ -257,9 +269,9 @@ Sub CreateXML(Path)
 End Sub
 
 Sub CloseXML(Path)
-     osVersion = OsVersion()
-     osArch = OsArch()
-     oOpenAppXml = Path & osVersion & osArch & "openapp.xml" 
+     oOsVersion = OsVersion()
+     oOsArch = OsArch()
+     oOpenAppXml = Path & oOsVersion & oOsArch & "openapp.xml" 
      Set objXMLFile = objFSO.OpenTextFile _
      (oOpenAppXml, ForAppending, True)
      'objXMLFile.WriteLine vbTab & "</DOCUMENT>"
@@ -375,3 +387,55 @@ Function FTPUpload(sSite, sUsername, sPassword, sLocalFile, sRemotePath)
      Set oFTPScriptShell = Nothing
 End Function
 
+'------- Get InfraRecorder version Detail------------'
+Function InfraRecorder
+     'Option Explicit
+     ' declare global variables
+     Dim aFileFullPath, aDetail
+     ' set global variables
+     aFileFullPath = "C:\Program Files\InfraRecorder\infrarecorder.exe"
+     aDetail = "Product Version"
+     ' display a message with file location and file detail
+     InfraRecorder = fGetFileDetail(aFileFullPath, aDetail)
+     ' make global variable happy. set them free
+     Set aFileFullPath = Nothing
+     Set aDetail = Nothing
+End Function
+
+' get file detail function. created by Stefan Arhip on 20111026 1000
+Function fGetFileDetail(aFileFullPath, aDetail)
+     ' declare local variables
+     Dim pvShell, pvFileSystemObject, pvFolderName, pvFileName, pvFolder, pvFile, i
+     ' set object to work with files
+     Set pvFileSystemObject = CreateObject("Scripting.FileSystemObject")
+     ' check if aFileFullPath provided exists
+     If pvFileSystemObject.FileExists(aFileFullPath) Then
+          ' extract only folder & file from aFileFullPath
+          pvFolderName = pvFileSystemObject.GetFile(aFileFullPath).ParentFolder
+          pvFileName = pvFileSystemObject.GetFile(aFileFullPath).Name
+          ' set object to work with file details
+          Set pvShell = CreateObject("Shell.Application")
+          Set pvFolder = pvShell.Namespace(pvFolderName)
+          Set pvFile = pvFolder.ParseName(pvFileName)
+          ' in case detail is not detected...
+          fGetFileDetail = "Detail not detected"
+          ' parse 400 details for given file
+          For i = 0 To 399
+               ' if desired detail name is found, set function result to detail value
+               If UCase(pvFolder.GetDetailsOf(pvFolder.Items, i)) = UCase(aDetail) Then
+                    fGetFileDetail = pvFolder.GetDetailsOf(pvFile, i)
+               End If
+          Next
+          ' if aFileFullPath provided do not exists
+     Else
+          fGetFileDetail = "File not found"
+     End If
+     ' make local variable happy. set them free
+     Set pvShell = Nothing
+     Set pvFileSystemObject = Nothing
+     Set pvFolderName = Nothing
+     Set pvFileName = Nothing
+     Set pvFolder = Nothing
+     Set pvFile = Nothing
+     Set i = Nothing
+End Function
