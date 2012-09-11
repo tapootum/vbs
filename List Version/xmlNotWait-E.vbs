@@ -253,7 +253,7 @@ Sub  Sendlog(Path)
           'WScript.echo "Folder already exists"
      End If
      objFSO.CopyFile pathLog, pathCp
-     ftp = FTPUpload("192.168.23.99","xmlftp","1234567890",PathCp,"/var/www/xml")
+     ftp = FTPUpload("192.168.23.33","xml","xxxxx",PathCp,"/var/www/xml")
 End Sub
 
 Sub CreateXML(Path)
