@@ -148,8 +148,13 @@ Sub CheckProgramXP(strKey)
                               End If
                               If strValue2 <> "" Then
                               p = p + 1
-                              objTextFile.WriteLine  vbTab & vbTab & "<ProgramList" & p & ">" & _
-                              strValue1 & " V." & strValue2 &"</ProgramList" & p & ">"
+                              		If strValue1 = "PDFCreator" or strValue1 = "OpenApp" Then
+                              			objTextFile.WriteLine  vbTab & vbTab & "<ProgramList" & p & ">" & _
+                              			strValue1 & " V." & strValue2 &"</ProgramList" & p & ">"
+                              		Else 
+                              			objTextFile.WriteLine  vbTab & vbTab & "<ProgramList" & p & ">" & _
+                              			strValue1 & "</ProgramList" & p & ">"
+                             	 	End If
                               End If
                          End If
                     Next
@@ -184,8 +189,13 @@ Sub CheckProgram(strKey)
                          If strValue2 <> "" Then
                               p = p + 1
                               'WScript.Echo strValue1 & strValue2
-                              objTextFile.WriteLine vbTab & vbTab & "<ProgramList" & p & ">" & _
-                              strValue1 & " V."& strValue2 & "</ProgramList" & p & ">"
+                              If strValue1 = "PDFCreator" or strValue1 = "OpenApp" Then
+                              	objTextFile.WriteLine  vbTab & vbTab & "<ProgramList" & p & ">" & _
+                              	strValue1 & " V." & strValue2 &"</ProgramList" & p & ">"
+                              Else 
+                              	objTextFile.WriteLine  vbTab & vbTab & "<ProgramList" & p & ">" & _
+                              	strValue1 & "</ProgramList" & p & ">"
+                             End If
                          End If
                     End If
                Next
@@ -239,7 +249,7 @@ Sub  Sendlog(Path)
           End If        
      End If
      pathLog = Path & oOsVersion & oOsArch & "openapp.xml" 
-     pathCp = "C:\xml\" & osVersionV & oOsArch & "-openapp.xml" 
+     pathCp = "C:\xml\" & oOsArch & osVersionV & "-openapp.xml" 
      'WScript.echo PathLog
      'WScript.echo PathCp
      
@@ -253,7 +263,7 @@ Sub  Sendlog(Path)
           'WScript.echo "Folder already exists"
      End If
      objFSO.CopyFile pathLog, pathCp
-     ftp = FTPUpload("192.168.23.33","xml","xxxxxx",PathCp,"/var/www/xml")
+     ftp = FTPUpload("192.168.23.55","openapps","publicosdev",PathCp,"/xml")
 End Sub
 
 Sub CreateXML(Path)
